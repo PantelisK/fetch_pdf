@@ -1,0 +1,33 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"time"
+    //"io/ioutil"
+    //os"
+	"github.com/gorilla/mux"
+	//"mime"
+)
+
+func main() {
+
+	router := mux.NewRouter()
+
+	router.HandleFunc("/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) {
+		id:= mux.Vars(r)["id"]
+		fmt.Fprintf(w,id)
+		//fmt.Fprintf(w, "/resources/{id:[0-9]+}: %s!", mux.Vars(r)["id"])
+	})
+
+
+	srv := &http.Server{
+		Handler:      router,
+		Addr:         ":8080",
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+
+	log.Fatal(srv.ListenAndServe())
+}

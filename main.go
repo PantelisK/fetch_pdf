@@ -14,6 +14,8 @@ import (
 	//"github.com/gorilla/mux"
 	//"time"
 	//"mimeType"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 
@@ -35,6 +37,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 	mimeType := http.DetectContentType(bytes)
 	//fmt.Println(mimeType) // image/png
 if mimeType == "application/pdf" {
+		pingCounter.Inc()
 		fmt.Println("pdf FUNC") // image/png
 		err3 := DownloadFile("dummy.pdf", "http://95.217.49.162:3000/dummy.pdf")
 		if err3 != nil {
@@ -46,6 +49,7 @@ if mimeType == "application/pdf" {
 	return
 }
 if mimeType == "image/png"{
+		pingCounter.Inc()
 		fmt.Println("png FUNC") // image/png
 		err2 := DownloadFile("dummy.png", "http://95.217.49.162:3000/dummy.png")
 		if err != nil {
@@ -82,9 +86,17 @@ func DownloadFile(filepath string, url string) error {
 	return err
 
 }
-
+var pingCounter = prometheus.NewCounter(
+   prometheus.CounterOpts{
+       Name: "ping_request_count",
+       Help: "No of request handled by Ping handler",
+   },
+)
 
 func main(){
+
+	prometheus.MustRegister(pingCounter)
+	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", getRoot)
 	err1 := http.ListenAndServe(":8081", nil)
 	if errors.Is(err1, http.ErrServerClosed){
